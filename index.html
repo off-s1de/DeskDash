@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · RT Nagar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── CONFIG: paste your API keys here ── */
+  /* FOOTBALL_DATA_API_KEY  → https://www.football-data.org (free tier) */
+  /* OPENSKY is anonymous (no key needed)                                 */
+  /* OPEN_METEO is anonymous (no key needed)                              */
+
+  :root {
+    --bg-base:       #0d0d14;
+    --bg-deep:       #07070f;
+    --glass:         rgba(255,255,255,0.07);
+    --glass-hover:   rgba(255,255,255,0.11);
+    --glass-border:  rgba(255,255,255,0.14);
+    --glass-shine:   rgba(255,255,255,0.22);
+    --blur:          18px;
+    --blue:          #3b9eff;
+    --blue-soft:     rgba(59,158,255,0.18);
+    --green:         #30d158;
+    --green-soft:    rgba(48,209,88,0.18);
+    --amber:         #ffd60a;
+    --amber-soft:    rgba(255,214,10,0.15);
+    --red:           #ff453a;
+    --red-soft:      rgba(255,69,58,0.18);
+    --purple:        #bf5af2;
+    --purple-soft:   rgba(191,90,242,0.18);
+    --barca-r:       #a50044;
+    --barca-b:       #004d99;
+    --text:          rgba(255,255,255,0.92);
+    --text2:         rgba(255,255,255,0.55);
+    --text3:         rgba(255,255,255,0.30);
+    --r:             18px;
+    --r-sm:          12px;
+    --r-pill:        999px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-deep);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59,158,255,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(191,90,242,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(48,209,88,0.05) 0%, transparent 70%);
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── GLASS MIXIN ── */
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r);
+    backdrop-filter: blur(var(--blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+    position: relative;
+    overflow: hidden;
+  }
+  .glass::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glass-shine), transparent);
+    border-radius: var(--r) var(--r) 0 0;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo-block .logo {
+    font-size: 17px; font-weight: 600; letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #fff 30%, rgba(59,158,255,0.9));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .logo-block .subloc {
+    font-size: 11px; color: var(--text3); letter-spacing: 2px;
+    text-transform: uppercase; margin-top: 2px;
+  }
+  .clock-block { text-align: right; }
+  #clock {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px; font-weight: 400; letter-spacing: 1px; color: var(--text);
+  }
+  #date { font-size: 12px; color: var(--text2); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+
+  /* ── TICKER ── */
+  #ticker {
+    overflow: hidden; padding: 9px 0;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.03);
+  }
+  #ticker-track {
+    display: flex; white-space: nowrap;
+    animation: ticker 80s linear infinite;
+  }
+  .tick { padding: 0 32px; font-size: 12px; color: var(--text2); }
+  .tick .tag {
+    font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--blue); margin-right: 8px;
+    background: var(--blue-soft); padding: 2px 7px; border-radius: var(--r-pill);
+  }
+  .tick .tag.g { color: var(--green); background: var(--green-soft); }
+  .tick .tag.a { color: var(--amber); background: var(--amber-soft); }
+  @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  /* ── GRID ── */
+  #grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  /* ── CARD HEADER ── */
+  .ch {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .ch-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--text3);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green); flex-shrink: 0;
+    box-shadow: 0 0 6px var(--green);
+    animation: livepulse 2s ease-in-out infinite;
+  }
+  @keyframes livepulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.85)} }
+
+  /* ── CARD SUBHEADINGS ── */
+  .sub {
+    font-size: 15px; font-weight: 600; color: var(--text2);
+    letter-spacing: 0.3px; margin-bottom: 8px; margin-top: 14px;
+  }
+  .sub:first-of-type { margin-top: 0; }
+
+  /* ── WEATHER ── */
+  .wx-main { display: flex; align-items: flex-end; gap: 14px; margin-bottom: 14px; }
+  .wx-temp { font-size: 60px; font-weight: 300; line-height: 1; color: var(--text); }
+  .wx-temp sup { font-size: 22px; vertical-align: super; color: var(--text2); }
+  .wx-meta .wx-city { font-size: 17px; font-weight: 600; color: var(--text); }
+  .wx-meta .wx-cond { font-size: 14px; color: var(--text2); margin-top: 3px; }
+  .wx-meta .wx-feels { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .wx-grid {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+  }
+  .wx-stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-sm); padding: 10px 8px; text-align: center;
+  }
+  .wx-stat .v { font-size: 16px; font-weight: 600; color: var(--text); }
+  .wx-stat .l { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
+
+  /* ── SCORES ── */
+  .match {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .match:last-child { border-bottom: none; }
+  .match-league-pill {
+    font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: var(--r-pill);
+    background: var(--blue-soft); color: var(--blue);
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .match-league-pill.ucl { background: var(--purple-soft); color: var(--purple); }
+  .match-league-pill.epl { background: var(--green-soft); color: var(--green); }
+  .match-league-pill.bun { background: var(--amber-soft); color: var(--amber); }
+  .match-league-pill.ser { background: rgba(255,69,58,0.15); color: var(--red); }
+  .tn { flex: 1; font-size: 13px; font-weight: 500; }
+  .tn.barca-c { color: var(--barca-r); }
+  .tn.right { text-align: right; }
+  .score-box {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px; font-weight: 500; color: var(--text);
+    background: rgba(255,255,255,0.07); border: 1px solid var(--glass-border);
+    border-radius: var(--r-sm); padding: 4px 10px; min-width: 52px; text-align: center;
+  }
+  .ms { font-size: 10px; color: var(--green); font-weight: 600; letter-spacing: 1px; white-space: nowrap; }
+  .ms.ft { color: var(--text3); }
+  .scores-section-title {
+    font-size: 13px; font-weight: 600; color: var(--text3);
+    letter-spacing: 1px; text-transform: uppercase;
+    margin: 12px 0 6px; padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .scores-section-title:first-child { margin-top: 0; }
+
+  /* ── STANDINGS ── */
+  .league-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .lp {
+    font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    padding: 5px 12px; border-radius: var(--r-pill);
+    background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border);
+    color: var(--text3); cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+  }
+  .lp:hover { background: rgba(255,255,255,0.10); color: var(--text2); }
+  .lp.active { background: var(--blue-soft); color: var(--blue); border-color: rgba(59,158,255,0.35); }
+  .st-row {
+    display: grid; grid-template-columns: 22px minmax(0,1fr) 28px 28px 28px 36px;
+    gap: 6px; align-items: center;
+    padding: 7px 10px; border-radius: var(--r-sm);
+    font-size: 13px; transition: background 0.15s;
+  }
+  .st-row:hover { background: rgba(255,255,255,0.04); }
+  .st-row.barca-row { background: rgba(165,0,68,0.12); border: 1px solid rgba(165,0,68,0.25); }
+  .st-row.barca-row .st-team { color: #ff6b9d; font-weight: 600; }
+  .st-hdr { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; }
+  .st-pos { color: var(--text3); text-align: center; font-size: 12px; }
+  .st-team { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .st-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text2); text-align: right; }
+  .st-pts { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; color: var(--text); text-align: right; }
+
+  /* ── BARCA CARD ── */
+  .barca-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .barca-crest {
+    width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--barca-r) 50%, var(--barca-b) 50%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9);
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+  .barca-name { font-size: 20px; font-weight: 600; color: var(--text); }
+  .barca-league { font-size: 12px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+  .barca-stat-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
+  .bstat {
+    text-align: center; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border); border-radius: var(--r-sm); padding: 8px 4px;
+  }
+  .bstat .v { font-size: 18px; font-weight: 600; color: var(--text); }
+  .bstat .l { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
+  .form-row { display: flex; gap: 5px; }
+  .fp {
+    width: 28px; height: 28px; border-radius: var(--r-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .fp.W { background: var(--green-soft); color: var(--green); border: 1px solid rgba(48,209,88,0.3); }
+  .fp.D { background: var(--amber-soft); color: var(--amber); border: 1px solid rgba(255,214,10,0.3); }
+  .fp.L { background: var(--red-soft); color: var(--red); border: 1px solid rgba(255,69,58,0.3); }
+
+  /* ── NEXT FIXTURE ── */
+  .fixture-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border); border-radius: var(--r-sm); padding: 12px;
+    margin-top: 8px;
+  }
+  .fix-teams { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .fix-team { text-align: center; flex: 1; }
+  .fix-team .name { font-size: 15px; font-weight: 600; }
+  .fix-team .name.barca-c { color: #ff6b9d; }
+  .fix-vs { font-size: 13px; font-weight: 600; color: var(--text3); }
+  .fix-meta { text-align: center; margin-top: 10px; }
+  .fix-date { font-size: 13px; color: var(--blue); font-weight: 500; }
+  .fix-comp { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  .countdown {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px; font-weight: 500; color: var(--amber);
+    margin-top: 8px; letter-spacing: 2px;
+  }
+
+  /* ── FLIGHTS ── */
+  .radar-bar {
+    height: 2px; background: rgba(255,255,255,0.06);
+    border-radius: var(--r-pill); margin-bottom: 12px; overflow: hidden;
+  }
+  .radar-sweep {
+    height: 100%; width: 30%;
+    background: linear-gradient(90deg, transparent, var(--green));
+    animation: sweep 2.5s ease-in-out infinite;
+    border-radius: var(--r-pill);
+  }
+  @keyframes sweep { 0%{margin-left:-30%} 100%{margin-left:110%} }
+  .fl-row {
+    display: grid; grid-template-columns: 65px minmax(0,1fr) 55px 55px 44px;
+    gap: 6px; align-items: center;
+    padding: 7px 8px; border-radius: var(--r-sm); font-size: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .fl-row:last-child { border-bottom: none; }
+  .fl-row:hover { background: rgba(255,255,255,0.04); }
+  .fl-no { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--blue); font-weight: 500; }
+  .fl-country { color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fl-alt { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--amber); text-align: right; }
+  .fl-spd { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text2); text-align: right; }
+  .fl-badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 6px; border-radius: var(--r-pill); text-align: center;
+  }
+  .fl-badge.live { background: var(--green-soft); color: var(--green); }
+  .fl-badge.gnd { background: rgba(255,255,255,0.07); color: var(--text3); }
+
+  /* ── SYSTEM / WORLD CLOCKS ── */
+  .sys-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .sys-row:last-child { border-bottom: none; }
+  .sys-label { font-size: 12px; color: var(--text2); min-width: 80px; letter-spacing: 0.5px; }
+  .sys-bar { flex: 1; height: 3px; background: rgba(255,255,255,0.07); border-radius: var(--r-pill); overflow: hidden; }
+  .sys-fill { height: 100%; border-radius: var(--r-pill); transition: width 0.8s ease; }
+  .sys-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); min-width: 50px; text-align: right; }
+  .wc-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .wc-row:last-child { border-bottom: none; }
+  .wc-city { font-size: 13px; color: var(--text2); }
+  .wc-time { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--text); font-weight: 500; }
+  .wc-row.ist .wc-city { color: var(--blue); font-weight: 600; }
+  .wc-row.ist .wc-time { color: var(--blue); }
+
+  /* ── SPAN ── */
+  .col2 { grid-column: span 2; }
+
+  /* ── LOADING / ERROR ── */
+  .loading { color: var(--text3); font-size: 13px; padding: 8px 0; }
+  .api-note {
+    font-size: 11px; color: var(--text3); padding: 10px 12px;
+    background: var(--amber-soft); border: 1px solid rgba(255,214,10,0.2);
+    border-radius: var(--r-sm); letter-spacing: 0.3px;
+  }
+  .api-note a { color: var(--amber); }
+  .err { color: var(--red); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <div class="logo-block">
+    <div class="logo">Dashboard</div>
+    <div class="subloc">RT Nagar · Bengaluru · IN</div>
+  </div>
+  <div class="clock-block">
+    <div id="clock">--:--:--</div>
+    <div id="date">—</div>
+  </div>
+</div>
+
+<!-- ── TICKER ── -->
+<div id="ticker">
+  <div id="ticker-track">
+    <span class="tick"><span class="tag">FCB</span> Live Barcelona scores &amp; fixtures</span>
+    <span class="tick"><span class="tag g">WX</span> RT Nagar weather · Open-Meteo</span>
+    <span class="tick"><span class="tag">UCL</span> UEFA Champions League standings</span>
+    <span class="tick"><span class="tag a">SKY</span> Overhead flights via OpenSky</span>
+    <span class="tick"><span class="tag">EPL</span> Premier League table</span>
+    <span class="tick"><span class="tag g">SYS</span> Battery · uptime · network</span>
+    <span class="tick"><span class="tag">FCB</span> Live Barcelona scores &amp; fixtures</span>
+    <span class="tick"><span class="tag g">WX</span> RT Nagar weather · Open-Meteo</span>
+    <span class="tick"><span class="tag">UCL</span> UEFA Champions League standings</span>
+    <span class="tick"><span class="tag a">SKY</span> Overhead flights via OpenSky</span>
+    <span class="tick"><span class="tag">EPL</span> Premier League table</span>
+    <span class="tick"><span class="tag g">SYS</span> Battery · uptime · network</span>
+  </div>
+</div>
+
+<!-- ── GRID ── -->
+<div id="grid">
+
+  <!-- WEATHER -->
+  <div class="glass" style="padding:18px">
+    <div class="ch">
+      <div class="ch-label"><div class="live-dot"></div> Weather</div>
+    </div>
+    <div id="wx-out"><div class="loading">Fetching weather…</div></div>
+  </div>
+
+  <!-- FC BARCELONA -->
+  <div class="glass" style="padding:18px; grid-row: span 2;">
+    <div class="ch">
+      <div class="ch-label"><div class="live-dot"></div> FC Barcelona</div>
+    </div>
+    <div class="barca-header">
+      <div class="barca-crest">FCB</div>
+      <div>
+        <div class="barca-name">FC Barcelona</div>
+        <div class="barca-league" id="barca-league-label">La Liga · loading…</div>
+      </div>
+    </div>
+    <div class="sub">Season stats</div>
+    <div class="barca-stat-grid" id="barca-stats">
+      <div class="bstat"><div class="v">—</div><div class="l">Played</div></div>
+      <div class="bstat"><div class="v" style="color:var(--green)">—</div><div class="l">Won</div></div>
+      <div class="bstat"><div class="v" style="color:var(--amber)">—</div><div class="l">Draw</div></div>
+      <div class="bstat"><div class="v" style="color:var(--red)">—</div><div class="l">Lost</div></div>
+      <div class="bstat"><div class="v" style="color:var(--blue)">—</div><div class="l">Pts</div></div>
+    </div>
+    <div class="sub" style="margin-top:14px;">Form</div>
+    <div class="form-row" id="barca-form"><div class="loading">Loading…</div></div>
+    <div class="sub" style="margin-top:14px;">Top scorer</div>
+    <div id="barca-scorer" class="loading">Loading…</div>
+    <div class="sub" style="margin-top:14px;">Next fixture</div>
+    <div class="fixture-box" id="barca-fixture"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- LIVE SCORES -->
+  <div class="glass" style="padding:18px">
+    <div class="ch">
+      <div class="ch-label"><div class="live-dot"></div> Live &amp; Recent</div>
+    </div>
+    <div id="scores-out"><div class="loading">Fetching matches…</div></div>
+  </div>
+
+  <!-- STANDINGS -->
+  <div class="glass col2" style="padding:18px">
+    <div class="ch">
+      <div class="ch-label">League Table</div>
+    </div>
+    <div class="league-pills" id="league-pills">
+      <button class="lp active" data-lid="PD">La Liga</button>
+      <button class="lp" data-lid="PL">Premier League</button>
+      <button class="lp" data-lid="BL1">Bundesliga</button>
+      <button class="lp" data-lid="SA">Serie A</button>
+      <button class="lp" data-lid="FL1">Ligue 1</button>
+      <button class="lp" data-lid="CL">UCL</button>
+    </div>
+    <div id="standings-out"><div class="loading">Loading standings…</div></div>
+  </div>
+
+  <!-- FLIGHTS -->
+  <div class="glass" style="padding:18px">
+    <div class="ch">
+      <div class="ch-label"><div class="live-dot"></div> Overhead Flights</div>
+    </div>
+    <div class="radar-bar"><div class="radar-sweep"></div></div>
+    <div id="flights-out"><div class="loading">Scanning airspace…</div></div>
+  </div>
+
+  <!-- SYSTEM + WORLD CLOCKS -->
+  <div class="glass" style="padding:18px">
+    <div class="ch">
+      <div class="ch-label">System &amp; World Time</div>
+    </div>
+    <div class="sub">Device</div>
+    <div id="sys-out">
+      <div class="sys-row">
+        <div class="sys-label">Battery</div>
+        <div class="sys-bar"><div class="sys-fill" id="bat-fill" style="width:0%;background:var(--green)"></div></div>
+        <div class="sys-val" id="bat-val">—%</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-label">Uptime</div>
+        <div class="sys-bar"><div class="sys-fill" style="width:100%;background:var(--blue)"></div></div>
+        <div class="sys-val" id="uptime-val">0s</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-label">Network</div>
+        <div class="sys-bar"><div class="sys-fill" id="net-fill" style="width:90%;background:var(--green)"></div></div>
+        <div class="sys-val" id="net-val">Online</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-label">Refresh in</div>
+        <div class="sys-bar"><div class="sys-fill" id="ref-fill" style="width:0%;background:var(--amber)"></div></div>
+        <div class="sys-val" id="ref-val">5:00</div>
+      </div>
+    </div>
+    <div class="sub" style="margin-top:16px;">World clocks</div>
+    <div id="wc-out"></div>
+  </div>
+
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════
+   CONFIG
+   1. Deploy worker.js to Cloudflare Workers
+   2. Add FOOTBALL_API_KEY as an env variable there
+   3. Paste your Worker URL below (no trailing slash)
+════════════════════════════════════════════════════ */
+const PROXY_BASE = 'https://deskdash.khedermdaneesullapcmct2022.workers.dev';
+
+/* Coordinates for RT Nagar, Bengaluru */
+const LAT = 13.0219, LON = 77.5937;
+
+/* League IDs (football-data.org) */
+const LEAGUES = {
+  PD:  { name: 'La Liga',         barca: true },
+  PL:  { name: 'Premier League',  barca: false },
+  BL1: { name: 'Bundesliga',      barca: false },
+  SA:  { name: 'Serie A',         barca: false },
+  FL1: { name: 'Ligue 1',         barca: false },
+  CL:  { name: 'UCL',             barca: true  },
+};
+const BARCA_ID = 81;
+
+/* ── CLOCK ── */
+const T0 = Date.now();
+function tick() {
+  const now = new Date();
+  const ist = new Intl.DateTimeFormat('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Kolkata'}).format(now);
+  document.getElementById('clock').textContent = ist;
+  document.getElementById('date').textContent =
+    new Intl.DateTimeFormat('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric',timeZone:'Asia/Kolkata'}).format(now).toUpperCase();
+}
+setInterval(tick,1000); tick();
+
+/* ── WORLD CLOCKS ── */
+const ZONES = [
+  {city:'Bengaluru',tz:'Asia/Kolkata',cls:'ist'},
+  {city:'London',tz:'Europe/London',cls:''},
+  {city:'Barcelona',tz:'Europe/Madrid',cls:''},
+  {city:'New York',tz:'America/New_York',cls:''},
+  {city:'Tokyo',tz:'Asia/Tokyo',cls:''},
+];
+function tickWC() {
+  const now = new Date();
+  document.getElementById('wc-out').innerHTML = ZONES.map(z=>`
+    <div class="wc-row ${z.cls}">
+      <div class="wc-city">${z.city}</div>
+      <div class="wc-time">${new Intl.DateTimeFormat('en',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:z.tz}).format(now)}</div>
+    </div>`).join('');
+}
+setInterval(tickWC,1000); tickWC();
+
+/* ── UPTIME / REFRESH ── */
+let refreshLeft = 300;
+function tickSys() {
+  const up = Math.floor((Date.now()-T0)/1000);
+  const h = Math.floor(up/3600), m = Math.floor((up%3600)/60), s = up%60;
+  document.getElementById('uptime-val').textContent = h ? `${h}h ${m}m` : m ? `${m}m ${s}s` : `${s}s`;
+  refreshLeft--;
+  if(refreshLeft<=0){refreshLeft=300;loadFlights();loadWeather();}
+  const rm=Math.floor(refreshLeft/60), rs=(refreshLeft%60).toString().padStart(2,'0');
+  document.getElementById('ref-val').textContent = `${rm}:${rs}`;
+  document.getElementById('ref-fill').style.width = ((300-refreshLeft)/300*100).toFixed(1)+'%';
+}
+setInterval(tickSys,1000);
+
+/* ── BATTERY ── */
+if('getBattery' in navigator){
+  navigator.getBattery().then(b=>{
+    function ub(){
+      const p=Math.round(b.level*100);
+      document.getElementById('bat-val').textContent=p+'%';
+      document.getElementById('bat-fill').style.width=p+'%';
+      document.getElementById('bat-fill').style.background=p>50?'var(--green)':p>20?'var(--amber)':'var(--red)';
+    } ub(); b.addEventListener('levelchange',ub);
+  });
+} else {
+  document.getElementById('bat-val').textContent='N/A';
+  document.getElementById('bat-fill').style.width='100%';
+  document.getElementById('bat-fill').style.background='var(--text3)';
+}
+
+/* ── NETWORK ── */
+function netStatus(){
+  const on=navigator.onLine;
+  document.getElementById('net-val').textContent=on?'Online':'Offline';
+  document.getElementById('net-fill').style.background=on?'var(--green)':'var(--red)';
+  document.getElementById('net-fill').style.width=on?'90%':'10%';
+}
+window.addEventListener('online',netStatus); window.addEventListener('offline',netStatus); netStatus();
+
+/* ── WEATHER (Open-Meteo, no key needed) ── */
+async function loadWeather(){
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,precipitation,uv_index&timezone=Asia/Kolkata`);
+    const d=await r.json(); const c=d.current;
+    const cond=wxLabel(c.weather_code);
+    const uv=c.uv_index||0;
+    const uvColor=uv>7?'var(--red)':uv>4?'var(--amber)':'var(--green)';
+    document.getElementById('wx-out').innerHTML=`
+      <div class="wx-main">
+        <div class="wx-temp">${Math.round(c.temperature_2m)}<sup>°C</sup></div>
+        <div class="wx-meta">
+          <div class="wx-city">RT Nagar, Bengaluru</div>
+          <div class="wx-cond">${cond}</div>
+          <div class="wx-feels">Feels like ${Math.round(c.apparent_temperature)}°C</div>
+        </div>
+      </div>
+      <div class="wx-grid">
+        <div class="wx-stat"><div class="v">${c.relative_humidity_2m}%</div><div class="l">Humidity</div></div>
+        <div class="wx-stat"><div class="v">${Math.round(c.wind_speed_10m)}</div><div class="l">Wind km/h</div></div>
+        <div class="wx-stat"><div class="v">${c.precipitation} mm</div><div class="l">Precip</div></div>
+        <div class="wx-stat"><div class="v" style="color:${uvColor}">${uv}</div><div class="l">UV Index</div></div>
+      </div>`;
+  }catch(e){
+    document.getElementById('wx-out').innerHTML='<div class="err">Weather unavailable</div>';
+  }
+}
+function wxLabel(code){
+  if(code===0) return 'Clear Sky';
+  if(code<=3) return 'Partly Cloudy';
+  if(code<=49) return 'Foggy / Hazy';
+  if(code<=67) return 'Rainy';
+  if(code<=77) return 'Snow / Sleet';
+  if(code<=82) return 'Rain Showers';
+  return 'Thunderstorm';
+}
+
+/* ── API HELPERS ── */
+function proxyReady(){
+  return PROXY_BASE !== 'https://YOUR-WORKER.YOUR-NAME.workers.dev';
+}
+
+async function fball(path){
+  if(!proxyReady()) return null;
+  const r=await fetch(`${PROXY_BASE}/football${path}`);
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function fetchFlightsProxy(qs){
+  if(!proxyReady()) return null;
+  const r=await fetch(`${PROXY_BASE}/opensky${qs}`);
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+function proxyNotice(container){
+  document.getElementById(container).innerHTML=`
+    <div class="api-note">
+      Deploy <strong>worker.js</strong> to Cloudflare Workers and set
+      <code>PROXY_BASE</code> in this file to enable live data.
+      See the README for step-by-step instructions.
+    </div>`;
+}
+
+/* ── BARCA ── */
+async function loadBarca(){
+  const d=await fball(`/teams/${BARCA_ID}`);
+  if(!d){proxyNotice('barca-stats'); return;}
+  const standing=await fball(`/teams/${BARCA_ID}/matches?status=FINISHED&limit=5`);
+  if(standing){
+    const matches=standing.matches||[];
+    document.getElementById('barca-form').innerHTML=matches.slice(-5).map(m=>{
+      const us=m.homeTeam.id===BARCA_ID?m.score.fullTime.home:m.score.fullTime.away;
+      const them=m.homeTeam.id===BARCA_ID?m.score.fullTime.away:m.score.fullTime.home;
+      const r=us>them?'W':us===them?'D':'L';
+      return `<div class="fp ${r}">${r}</div>`;
+    }).join('');
+  }
+  const next=await fball(`/teams/${BARCA_ID}/matches?status=SCHEDULED&limit=1`);
+  if(next&&next.matches&&next.matches.length){
+    const m=next.matches[0];
+    const opp=m.homeTeam.id===BARCA_ID?m.awayTeam.name:m.homeTeam.name;
+    const isHome=m.homeTeam.id===BARCA_ID;
+    const dt=new Date(m.utcDate);
+    const dtStr=new Intl.DateTimeFormat('en-IN',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Kolkata'}).format(dt)+' IST';
+    document.getElementById('barca-fixture').innerHTML=`
+      <div class="fix-teams">
+        <div class="fix-team"><div class="name ${isHome?'barca-c':''}">${isHome?'Barcelona':opp}</div></div>
+        <div class="fix-vs">vs</div>
+        <div class="fix-team"><div class="name ${!isHome?'barca-c':''}">${!isHome?'Barcelona':opp}</div></div>
+      </div>
+      <div class="fix-meta">
+        <div class="fix-date">${dtStr}</div>
+        <div class="fix-comp">${m.competition.name}</div>
+        <div class="countdown" id="fix-cd">—</div>
+      </div>`;
+    window._nextMatch=dt;
+  }
+  const laliga=await fball(`/competitions/PD/standings`);
+  if(laliga){
+    const entry=(laliga.standings[0].table||[]).find(t=>t.team.id===BARCA_ID);
+    if(entry){
+      document.getElementById('barca-league-label').textContent=`La Liga · ${entry.position}${ordinal(entry.position)} Place`;
+      document.getElementById('barca-stats').innerHTML=`
+        <div class="bstat"><div class="v">${entry.playedGames}</div><div class="l">Played</div></div>
+        <div class="bstat"><div class="v" style="color:var(--green)">${entry.won}</div><div class="l">Won</div></div>
+        <div class="bstat"><div class="v" style="color:var(--amber)">${entry.draw}</div><div class="l">Draw</div></div>
+        <div class="bstat"><div class="v" style="color:var(--red)">${entry.lost}</div><div class="l">Lost</div></div>
+        <div class="bstat"><div class="v" style="color:var(--blue)">${entry.points}</div><div class="l">Pts</div></div>`;
+    }
+  }
+  const scorers=await fball('/competitions/PD/scorers?limit=1');
+  if(scorers&&scorers.scorers&&scorers.scorers.length){
+    const s=scorers.scorers[0];
+    document.getElementById('barca-scorer').innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:15px;font-weight:600">${s.player.name}</span>
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--green);font-size:16px">${s.goals} gls</span>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:3px">${s.team.name}</div>`;
+  }
+}
+function ordinal(n){return n+(n===1?'st':n===2?'nd':n===3?'rd':'th');}
+
+/* ── COUNTDOWN ── */
+function tickFixture(){
+  if(!window._nextMatch) return;
+  const diff=window._nextMatch-new Date();
+  if(diff<=0){document.getElementById('fix-cd').textContent='Kickoff!';return;}
+  const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000);
+  const el=document.getElementById('fix-cd');
+  if(el) el.textContent=`${d}d ${h}h ${m}m`;
+}
+setInterval(tickFixture,60000); tickFixture();
+
+/* ── LIVE SCORES ── */
+const SCORE_LEAGUES=['PD','PL','BL1','SA','FL1','CL'];
+const LEAGUE_PILL_CLASS={PD:'',PL:'epl',BL1:'bun',SA:'ser',FL1:'',CL:'ucl'};
+async function loadScores(){
+  const el=document.getElementById('scores-out');
+  if(FOOTBALL_API_KEY==='YOUR_FOOTBALL_DATA_API_KEY'){proxyNotice('scores-out');return;}
+  try{
+    let html='';
+    for(const lid of SCORE_LEAGUES){
+      const d=await fball(`/competitions/${lid}/matches?status=LIVE,IN_PLAY,PAUSED`);
+      const live=(d&&d.matches)||[];
+      const d2=await fball(`/competitions/${lid}/matches?status=FINISHED&limit=2`);
+      const finished=(d2&&d2.matches)||[];
+      const all=[...live,...finished].slice(0,3);
+      if(!all.length) continue;
+      html+=`<div class="scores-section-title">${LEAGUES[lid].name}</div>`;
+      html+=all.map(m=>{
+        const isLive=m.status==='IN_PLAY'||m.status==='PAUSED'||m.status==='LIVE';
+        const hg=m.score.fullTime.home??m.score.halfTime.home??'—';
+        const ag=m.score.fullTime.away??m.score.halfTime.away??'—';
+        const hBarca=m.homeTeam.id===BARCA_ID;
+        const aBarca=m.awayTeam.id===BARCA_ID;
+        const min=m.minute?`${m.minute}'`:'FT';
+        return `<div class="match">
+          <div class="match-league-pill ${LEAGUE_PILL_CLASS[lid]}">${lid}</div>
+          <div class="tn ${hBarca?'barca-c':''}">${m.homeTeam.shortName||m.homeTeam.name}</div>
+          <div class="score-box">${hg} — ${ag}</div>
+          <div class="tn right ${aBarca?'barca-c':''}">${m.awayTeam.shortName||m.awayTeam.name}</div>
+          <div class="ms ${isLive?'':'ft'}">${min}</div>
+        </div>`;
+      }).join('');
+    }
+    el.innerHTML=html||'<div class="loading">No matches right now</div>';
+  }catch(e){
+    el.innerHTML='<div class="err">Scores unavailable</div>';
+  }
+}
+
+/* ── STANDINGS ── */
+let currentLeague='PD';
+async function loadStandings(lid){
+  const el=document.getElementById('standings-out');
+  if(FOOTBALL_API_KEY==='YOUR_FOOTBALL_DATA_API_KEY'){proxyNotice('standings-out');return;}
+  el.innerHTML='<div class="loading">Loading…</div>';
+  try{
+    const d=await fball(`/competitions/${lid}/standings`);
+    const table=(d.standings[0].table||[]).slice(0,8);
+    el.innerHTML=`
+      <div class="st-row st-hdr">
+        <div>#</div><div>Club</div>
+        <div style="text-align:right">MP</div>
+        <div style="text-align:right">GD</div>
+        <div style="text-align:right">W</div>
+        <div style="text-align:right;color:var(--blue)">Pts</div>
+      </div>
+      ${table.map(r=>`
+        <div class="st-row ${r.team.id===BARCA_ID?'barca-row':''}">
+          <div class="st-pos">${r.position}</div>
+          <div class="st-team">${r.team.shortName||r.team.name}</div>
+          <div class="st-num">${r.playedGames}</div>
+          <div class="st-num">${r.goalDifference>0?'+':''}${r.goalDifference}</div>
+          <div class="st-num">${r.won}</div>
+          <div class="st-pts">${r.points}</div>
+        </div>`).join('')}`;
+  }catch(e){
+    el.innerHTML='<div class="err">Standings unavailable</div>';
+  }
+}
+document.querySelectorAll('.lp').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.lp').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadStandings(btn.dataset.lid);
+  });
+});
+
+/* ── FLIGHTS (OpenSky, anonymous, no key needed) ── */
+async function loadFlights(){
+  const delta=0.5;
+  const qs=`?lamin=${LAT-delta}&lomin=${LON-delta}&lamax=${LAT+delta}&lomax=${LON+delta}`;
+  try{
+    if(!proxyReady()){proxyNotice('flights-out');return;}
+    const d=await fetchFlightsProxy(qs);
+    if(!d){proxyNotice('flights-out');return;}
+    const states=(d.states||[]).filter(s=>s[1]);
+    if(!states.length){
+      document.getElementById('flights-out').innerHTML='<div class="loading">No aircraft overhead right now</div>';
+      return;
+    }
+    const rows=states.slice(0,7).map(s=>{
+      const cs=(s[1]||'').trim();
+      const country=s[2]||'?';
+      const alt=s[7]!=null?`${(s[7]/1000).toFixed(1)}km`:'—';
+      const spd=s[9]!=null?`${Math.round(s[9]*3.6)}km/h`:'—';
+      const gnd=s[8];
+      return `<div class="fl-row">
+        <div class="fl-no">${cs}</div>
+        <div class="fl-country">${country}</div>
+        <div class="fl-alt">${alt}</div>
+        <div class="fl-spd">${spd}</div>
+        <div class="fl-badge ${gnd?'gnd':'live'}">${gnd?'GND':'AIR'}</div>
+      </div>`;
+    }).join('');
+    document.getElementById('flights-out').innerHTML=`
+      <div class="fl-row" style="font-size:10px;color:var(--text3);padding:4px 8px">
+        <div>CALLSIGN</div><div>COUNTRY</div><div>ALT</div><div>SPEED</div><div>STATUS</div>
+      </div>
+      ${rows}
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;padding:0 8px">
+        ${states.length} aircraft in ~55 km radius · OpenSky Network
+      </div>`;
+  }catch(e){
+    document.getElementById('flights-out').innerHTML='<div class="err">Flight feed unavailable — OpenSky may be rate limiting</div>';
+  }
+}
+
+/* ── INIT ── */
+loadWeather();
+loadBarca();
+loadScores();
+loadStandings('PD');
+loadFlights();
+setInterval(loadWeather, 10*60*1000);
+setInterval(loadScores,   2*60*1000);
+setInterval(loadFlights,  5*60*1000);
+</script>
+</body>
+</html>
