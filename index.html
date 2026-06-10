@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeskDash · RT Nagar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07070f;
+      --glass: rgba(255, 255, 255, 0.07);
+      --gb: rgba(255, 255, 255, 0.13);
+      --shine: rgba(255, 255, 255, 0.22);
+      --blue: #3b9eff;
+      --bsoft: rgba(59, 158, 255, 0.18);
+      --green: #30d158;
+      --gsoft: rgba(48, 209, 88, 0.18);
+      --amber: #ffd60a;
+      --asoft: rgba(255, 214, 10, 0.15);
+      --red: #ff453a;
+      --rsoft: rgba(255, 69, 58, 0.18);
+      --purple: #bf5af2;
+      --psoft: rgba(191, 90, 242, 0.18);
+      --br: #a50044;
+      --bb: #004d99;
+      --t1: rgba(255, 255, 255, 0.92);
+      --t2: rgba(255, 255, 255, 0.55);
+      --t3: rgba(255, 255, 255, 0.30);
+      --r: 18px;
+      --rsm: 12px;
+      --pill: 999px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59, 158, 255, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(191, 90, 242, 0.10) 0%, transparent 60%);
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--t1);
+    }
+
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--shine), transparent);
+    }
+
+    /* topbar */
+    #topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--gb);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 17px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #fff 30%, rgba(59, 158, 255, 0.9));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subloc {
+      font-size: 11px;
+      color: var(--t3);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    #clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: 1px;
+    }
+
+    #date {
+      font-size: 12px;
+      color: var(--t2);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 3px;
+      text-align: right;
+    }
+
+    /* ticker */
+    #ticker {
+      overflow: hidden;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--gb);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    #ticker-track {
+      display: flex;
+      white-space: nowrap;
+      animation: ticker 80s linear infinite;
+    }
+
+    .tick {
+      padding: 0 32px;
+      font-size: 12px;
+      color: var(--t2);
+    }
+
+    .tick .tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: var(--bsoft);
+      padding: 2px 7px;
+      border-radius: var(--pill);
+      margin-right: 8px;
+    }
+
+    .tick .tag.g {
+      color: var(--green);
+      background: var(--gsoft);
+    }
+
+    .tick .tag.a {
+      color: var(--amber);
+      background: var(--asoft);
+    }
+
+    @keyframes ticker {
+      0% {
+        transform: translateX(0)
+      }
+
+      100% {
+        transform: translateX(-50%)
+      }
+    }
+
+    /* grid */
+    #grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .col2 {
+      grid-column: span 2;
+    }
+
+    .rspan2 {
+      grid-row: span 2;
+    }
+
+    /* card internals */
+    .ch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .ch-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--t3);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .ldot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: lp 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes lp {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.85)
+      }
+    }
+
+    .sub {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--t2);
+      letter-spacing: 0.3px;
+      margin: 14px 0 8px;
+    }
+
+    /* weather */
+    .wx-main {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .wx-temp {
+      font-size: 60px;
+      font-weight: 300;
+      line-height: 1;
+    }
+
+    .wx-temp sup {
+      font-size: 22px;
+      vertical-align: super;
+      color: var(--t2);
+    }
+
+    .wx-city {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .wx-cond {
+      font-size: 14px;
+      color: var(--t2);
+      margin-top: 3px;
+    }
+
+    .wx-feels {
+      font-size: 12px;
+      color: var(--t3);
+      margin-top: 2px;
+    }
+
+    .wx-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .wx-stat {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--gb);
+      border-radius: var(--rsm);
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .wx-stat .v {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .wx-stat .l {
+      font-size: 10px;
+      color: var(--t3);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    /* scores */
+    .sec-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t3);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 12px 0 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .sec-title:first-child {
+      margin-top: 0;
+    }
+
+    .match {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .match:last-child {
+      border-bottom: none;
+    }
+
+    .lpill {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: var(--pill);
+      background: var(--bsoft);
+      color: var(--blue);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .lpill.ucl {
+      background: var(--psoft);
+      color: var(--purple);
+    }
+
+    .lpill.epl {
+      background: var(--gsoft);
+      color: var(--green);
+    }
+
+    .lpill.bun {
+      background: var(--asoft);
+      color: var(--amber);
+    }
+
+    .lpill.ser {
+      background: var(--rsoft);
+      color: var(--red);
+    }
+
+    .tn {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .tn.r {
+      text-align: right;
+    }
+
+    .tn.bc {
+      color: #ff6b9d;
+    }
+
+    .sbox {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--gb);
+      border-radius: var(--rsm);
+      padding: 4px 10px;
+      min-width: 52px;
+      text-align: center;
+    }
+
+    .ms {
+      font-size: 10px;
+      color: var(--green);
+      font-weight: 600;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .ms.ft {
+      color: var(--t3);
+    }
+
+    /* barca */
+    .barca-hdr {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .crest {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--br) 50%, var(--bb) 50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .crest img {
+      width: 95%;
+      height: 95%;
+      object-fit: contain;
+    }
+
+    .bname {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .bleague {
+      font-size: 12px;
+      color: var(--t3);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .bsgrid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .bstat {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--gb);
+      border-radius: var(--rsm);
+      padding: 8px 4px;
+    }
+
+    .bstat .v {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .bstat .l {
+      font-size: 10px;
+      color: var(--t3);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 5px;
+    }
+
+    .fp {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--rsm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .fp.W {
+      background: var(--gsoft);
+      color: var(--green);
+      border: 1px solid rgba(48, 209, 88, 0.3);
+    }
+
+    .fp.D {
+      background: var(--asoft);
+      color: var(--amber);
+      border: 1px solid rgba(255, 214, 10, 0.3);
+    }
+
+    .fp.L {
+      background: var(--rsoft);
+      color: var(--red);
+      border: 1px solid rgba(255, 69, 58, 0.3);
+    }
+
+    .fix-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--gb);
+      border-radius: var(--rsm);
+      padding: 12px;
+      margin-top: 4px;
+    }
+
+    .team-flag {
+      width: 40px;
+      height: 40px;
+
+      margin: 0 auto 10px;
+
+      border-radius: 50%;
+      overflow: hidden;
+
+      border: 2px solid rgba(255, 255, 255, .10);
+
+      position: relative;
+    }
+
+    .team-flag img {
+      width: 150%;
+      height: 150%;
+
+      position: absolute;
+      top: 50%;
+      left: 50%;
+
+      transform: translate(-50%, -50%);
+    }
+
+    .fix-teams {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .fix-team {
+      text-align: center;
+      flex: 1;
+    }
+
+    .fix-team .name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .fix-team .name.bc {
+      color: #ff6b9d;
+    }
+
+    .fix-vs {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--t3);
+    }
+
+    .fix-meta {
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    .cd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--amber);
+      margin-top: 8px;
+      letter-spacing: 2px;
+    }
+
+    /* standings */
+    .lpills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .lp {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: var(--pill);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--gb);
+      color: var(--t3);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .lp:hover {
+      background: rgba(255, 255, 255, 0.10);
+      color: var(--t2);
+    }
+
+    .lp.active {
+      background: var(--bsoft);
+      color: var(--blue);
+      border-color: rgba(59, 158, 255, 0.35);
+    }
+
+    .st-row {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) 28px 28px 28px 36px;
+      gap: 6px;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: var(--rsm);
+      font-size: 13px;
+    }
+
+    .st-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .st-row.brow {
+      background: rgba(165, 0, 68, 0.12);
+      border: 1px solid rgba(165, 0, 68, 0.25);
+    }
+
+    .st-row.brow .st-team {
+      color: #ff6b9d;
+      font-weight: 600;
+    }
+
+    .st-hdr {
+      font-size: 10px;
+      color: var(--t3);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+    }
+
+    .st-pos {
+      color: var(--t3);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .st-team {
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .st-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--t2);
+      text-align: right;
+    }
+
+    .st-pts {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    /* flights */
+    .radar-bar {
+      height: 2px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: var(--pill);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .radar-sweep {
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, transparent, var(--green));
+      animation: sw 2.5s ease-in-out infinite;
+      border-radius: var(--pill);
+    }
+
+    @keyframes sw {
+      0% {
+        margin-left: -30%
+      }
+
+      100% {
+        margin-left: 110%
+      }
+    }
+
+    .fl-row {
+      display: grid;
+      grid-template-columns: 65px minmax(0, 1fr) 55px 55px 44px;
+      gap: 6px;
+      align-items: center;
+      padding: 7px 8px;
+      border-radius: var(--rsm);
+      font-size: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .fl-row:last-child {
+      border-bottom: none;
+    }
+
+    .fl-no {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--blue);
+      font-weight: 500;
+    }
+
+    .fl-country {
+      color: var(--t2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .fl-alt {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--amber);
+      text-align: right;
+    }
+
+    .fl-spd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--t2);
+      text-align: right;
+    }
+
+    .fl-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 6px;
+      border-radius: var(--pill);
+      text-align: center;
+    }
+
+    .fl-badge.air {
+      background: var(--gsoft);
+      color: var(--green);
+    }
+
+    .fl-badge.gnd {
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--t3);
+    }
+
+    /* system */
+    .sys-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .sys-row:last-child {
+      border-bottom: none;
+    }
+
+    .sys-lbl {
+      font-size: 12px;
+      color: var(--t2);
+      min-width: 80px;
+    }
+
+    .sys-bar {
+      flex: 1;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: var(--pill);
+      overflow: hidden;
+    }
+
+    .sys-fill {
+      height: 100%;
+      border-radius: var(--pill);
+      transition: width 0.8s;
+    }
+
+    .sys-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      min-width: 50px;
+      text-align: right;
+    }
+
+    .wc-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .wc-row:last-child {
+      border-bottom: none;
+    }
+
+    .wc-city {
+      font-size: 13px;
+      color: var(--t2);
+    }
+
+    .wc-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .wc-row.ist .wc-city,
+    .wc-row.ist .wc-time {
+      color: var(--blue);
+    }
+
+    /* notice */
+    .notice {
+      font-size: 11px;
+      color: var(--amber);
+      padding: 10px 12px;
+      background: var(--asoft);
+      border: 1px solid rgba(255, 214, 10, 0.2);
+      border-radius: var(--rsm);
+    }
+
+    .notice a {
+      color: var(--amber);
+    }
+
+    .dim {
+      color: var(--t3);
+      font-size: 13px;
+      padding: 8px 0;
+    }
+
+    .err {
+      color: var(--red);
+      font-size: 12px;
+    }
+
+    .fix-time {
+      color: #4aa3ff;
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .fix-date {
+      color: var(--t1);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .fix-comp {
+      color: var(--t2);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="topbar">
+    <div>
+      <div class="logo">DeskDash</div>
+      <div class="subloc">RT Nagar · Bengaluru · IN</div>
+    </div>
+    <div>
+      <div id="clock">--:--:--</div>
+      <div id="date">—</div>
+    </div>
+  </div>
+
+  <div id="ticker">
+    <div id="ticker-track">
+      <span class="tick"><span class="tag">WC26</span>FIFA World Cup 2026 countdown</span>
+      <span class="tick"><span class="tag g">WX</span>RT Nagar weather · Open-Meteo</span>
+      <span class="tick"><span class="tag">UCL</span>UEFA Champions League standings</span>
+      <span class="tick"><span class="tag a">SKY</span>Overhead flights via ADS-B</span>
+      <span class="tick"><span class="tag">EPL</span>Premier League table</span>
+      <span class="tick"><span class="tag g">SYS</span>Battery · uptime · network</span>
+      <span class="tick"><span class="tag">WC26</span>FIFA World Cup 2026 countdown</span>
+      <span class="tick"><span class="tag g">WX</span>RT Nagar weather · Open-Meteo</span>
+      <span class="tick"><span class="tag">UCL</span>UEFA Champions League standings</span>
+      <span class="tick"><span class="tag a">SKY</span>Overhead flights via ADS-B</span>
+      <span class="tick"><span class="tag">EPL</span>Premier League table</span>
+      <span class="tick"><span class="tag g">SYS</span>Battery · uptime · network</span>
+    </div>
+  </div>
+
+  <div id="grid">
+
+    <!-- WEATHER -->
+    <div class="glass" style="padding:18px">
+      <div class="ch">
+        <div class="ch-label">
+          <div class="ldot"></div>Weather
+        </div>
+      </div>
+      <div id="wx-out">
+        <div class="dim">Fetching weather…</div>
+      </div>
+    </div>
+
+    <!-- FIFA WORLD CUP 2026 -->
+
+    <div class="glass rspan2" style="padding:18px">
+
+      <div class="ch">
+        <div class="ch-label">
+          <div class="ldot"></div>
+          Upcoming Games
+        </div>
+      </div>
+
+      <div class="barca-hdr">
+
+        <div class="crest" style="
+            background:linear-gradient(
+                135deg,
+                #009cde,
+                #0055a4
+            );
+        ">
+          <img src="2026-FIFA-Logo.png" alt="WC">
+        </div>
+
+        <div>
+          <div class="bname">
+            FIFA World Cup 2026
+          </div>
+
+          <div class="bleague" id="wc-stage">
+            Next Match
+          </div>
+        </div>
+
+      </div>
+
+      <div class="fix-box" id="wc-next-match">
+        <div class="dim">
+          Loading next fixture...
+        </div>
+      </div>
+
+
+    </div>
+    <!-- SCORES -->
+    <div class="glass" style="padding:18px">
+      <div class="ch">
+        <div class="ch-label">
+          <div class="ldot"></div>Live &amp; Recent
+        </div>
+      </div>
+      <div id="scores-out">
+        <div class="dim">Fetching matches…</div>
+      </div>
+    </div>
+
+    <!-- STANDINGS -->
+    <div class="glass" style="padding:18px">
+      <div class="ch">
+        <div class="ch-label">League Table</div>
+      </div>
+      <div class="lpills" id="lpills">
+        <button class="lp active" data-lid="PD">La Liga</button>
+        <button class="lp" data-lid="PL">Premier League</button>
+        <button class="lp" data-lid="BL">Bundesliga</button>
+        <button class="lp" data-lid="SA">Serie A</button>
+        <button class="lp" data-lid="L1">Ligue 1</button>
+        <button class="lp" data-lid="CL">UCL</button>
+      </div>
+      <div id="standings-out">
+        <div class="dim">Loading standings…</div>
+      </div>
+    </div>
+
+    <!-- FLIGHTS -->
+    <div class="glass" style="padding:18px">
+      <div class="ch">
+        <div class="ch-label">
+          <div class="ldot"></div>Overhead Flights
+        </div>
+      </div>
+      <div class="radar-bar">
+        <div class="radar-sweep"></div>
+      </div>
+      <div id="flights-out">
+        <div class="dim">Scanning airspace…</div>
+      </div>
+    </div>
+
+    <!-- SYSTEM -->
+    <div class="glass" style="padding:18px">
+      <div class="ch">
+        <div class="ch-label">System &amp; World Time</div>
+      </div>
+      <div class="sub" style="margin-top:0">Device</div>
+      <div class="sys-row">
+        <div class="sys-lbl">Battery</div>
+        <div class="sys-bar">
+          <div class="sys-fill" id="bat-fill" style="width:0%;background:var(--green)"></div>
+        </div>
+        <div class="sys-val" id="bat-val">—%</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-lbl">Uptime</div>
+        <div class="sys-bar">
+          <div class="sys-fill" style="width:100%;background:var(--blue)"></div>
+        </div>
+        <div class="sys-val" id="uptime-val">0s</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-lbl">Network</div>
+        <div class="sys-bar">
+          <div class="sys-fill" id="net-fill" style="width:90%;background:var(--green)"></div>
+        </div>
+        <div class="sys-val" id="net-val">Online</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-lbl">Refresh in</div>
+        <div class="sys-bar">
+          <div class="sys-fill" id="ref-fill" style="width:0%;background:var(--amber)"></div>
+        </div>
+        <div class="sys-val" id="ref-val">5:00</div>
+      </div>
+      <div class="sub">World clocks</div>
+      <div id="wc-out"></div>
+    </div>
+
+  </div>
+
+  <script>
+
+    const FLAG_CODES = {
+      ARG: "AR",
+      AUS: "AU",
+      BEL: "BE",
+      BRA: "BR",
+      CAN: "CA",
+      CRO: "HR",
+      DEN: "DK",
+      ENG: "GB",
+      FRA: "FR",
+      GER: "DE",
+      ITA: "IT",
+      JPN: "JP",
+      KOR: "KR",
+      MEX: "MX",
+      MAR: "MA",
+      NED: "NL",
+      NOR: "NO",
+      POL: "PL",
+      POR: "PT",
+      RSA: "ZA",
+      SCO: "GB",
+      ESP: "ES",
+      SUI: "CH",
+      SWE: "SE",
+      TUR: "TR",
+      URU: "UY",
+      USA: "US"
+    };
+
+    const PROXY = 'https://deskdash.khedermdaneesullapcmct2022.workers.dev';
+    const LAT = 13.1979, LON = 77.7063;
+    const BARCA_ID = 81;
+    const LPILL_CLASS = { PD: '', PL: 'epl', BL1: 'bun', SA: 'ser', FL1: '', CL: 'ucl' };
+    const LEAGUE_NAME = { PD: 'La Liga', PL: 'Premier League', BL1: 'Bundesliga', SA: 'Serie A', FL1: 'Ligue 1', CL: 'UCL' };
+    // ────────────────────────────────────────────────────────
+
+    // CLOCK
+    const T0 = Date.now();
+    function tick() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' }).format(now);
+      document.getElementById('date').textContent =
+        new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }).format(now).toUpperCase();
+    }
+    setInterval(tick, 1000); tick();
+
+    // WORLD CLOCKS
+    const ZONES = [
+      { city: 'Bengaluru', tz: 'Asia/Kolkata', cls: 'ist' },
+      { city: 'London', tz: 'Europe/London', cls: '' },
+      { city: 'Barcelona', tz: 'Europe/Madrid', cls: '' },
+      { city: 'New York', tz: 'America/New_York', cls: '' },
+      { city: 'Tokyo', tz: 'Asia/Tokyo', cls: '' },
+    ];
+    function tickWC() {
+      const now = new Date();
+      document.getElementById('wc-out').innerHTML = ZONES.map(z =>
+        `<div class="wc-row ${z.cls}">
+      <div class="wc-city">${z.city}</div>
+      <div class="wc-time">${new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: z.tz }).format(now)}</div>
+    </div>`
+      ).join('');
+    }
+    setInterval(tickWC, 1000); tickWC();
+
+    // UPTIME + REFRESH
+    let refreshLeft = 300;
+    function tickSys() {
+      const up = Math.floor((Date.now() - T0) / 1000);
+      const h = Math.floor(up / 3600), m = Math.floor((up % 3600) / 60), s = up % 60;
+      document.getElementById('uptime-val').textContent = h ? `${h}h ${m}m` : m ? `${m}m ${s}s` : `${s}s`;
+      refreshLeft--;
+      if (refreshLeft <= 0) { refreshLeft = 300; loadWeather(); loadFlights(); }
+      const rm = Math.floor(refreshLeft / 60), rs = String(refreshLeft % 60).padStart(2, '0');
+      document.getElementById('ref-val').textContent = `${rm}:${rs}`;
+      document.getElementById('ref-fill').style.width = ((300 - refreshLeft) / 300 * 100).toFixed(1) + '%';
+    }
+    setInterval(tickSys, 1000);
+
+    // BATTERY
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then(b => {
+        const upd = () => {
+          const p = Math.round(b.level * 100);
+          document.getElementById('bat-val').textContent = p + '%';
+          document.getElementById('bat-fill').style.width = p + '%';
+          document.getElementById('bat-fill').style.background = p > 50 ? 'var(--green)' : p > 20 ? 'var(--amber)' : 'var(--red)';
+        };
+        upd(); b.addEventListener('levelchange', upd);
+      });
+    } else {
+      document.getElementById('bat-val').textContent = 'N/A';
+    }
+
+    // NETWORK
+    function netStatus() {
+      const on = navigator.onLine;
+      document.getElementById('net-val').textContent = on ? 'Online' : 'Offline';
+      document.getElementById('net-fill').style.background = on ? 'var(--green)' : 'var(--red)';
+      document.getElementById('net-fill').style.width = on ? '90%' : '10%';
+    }
+    window.addEventListener('online', netStatus);
+    window.addEventListener('offline', netStatus);
+    netStatus();
+
+    // WEATHER
+    async function loadWeather() {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,precipitation,uv_index&timezone=Asia/Kolkata`;
+        const res = await fetch(url);
+        const d = await res.json();
+        const c = d.current;
+        const uv = c.uv_index || 0;
+        const uvCol = uv > 7 ? 'var(--red)' : uv > 4 ? 'var(--amber)' : 'var(--green)';
+        const labels = ['Clear Sky', 'Partly Cloudy', 'Partly Cloudy', 'Partly Cloudy', 'Foggy / Hazy', 'Foggy / Hazy', 'Rainy', 'Rainy', 'Snow', 'Rain Showers', 'Thunderstorm'];
+        const cond = c.weather_code === 0 ? 'Clear Sky' : c.weather_code <= 3 ? 'Partly Cloudy' : c.weather_code <= 49 ? 'Foggy / Hazy' : c.weather_code <= 67 ? 'Rainy' : c.weather_code <= 77 ? 'Snow / Sleet' : c.weather_code <= 82 ? 'Rain Showers' : 'Thunderstorm';
+        document.getElementById('wx-out').innerHTML = `
+      <div class="wx-main">
+        <div class="wx-temp">${Math.round(c.temperature_2m)}<sup>°C</sup></div>
+        <div>
+          <div class="wx-city">RT Nagar, Bengaluru</div>
+          <div class="wx-cond">${cond}</div>
+          <div class="wx-feels">Feels like ${Math.round(c.apparent_temperature)}°C</div>
+        </div>
+      </div>
+      <div class="wx-grid">
+        <div class="wx-stat"><div class="v">${c.relative_humidity_2m}%</div><div class="l">Humidity</div></div>
+        <div class="wx-stat"><div class="v">${Math.round(c.wind_speed_10m)}</div><div class="l">Wind km/h</div></div>
+        <div class="wx-stat"><div class="v">${c.precipitation}mm</div><div class="l">Precip</div></div>
+        <div class="wx-stat"><div class="v" style="color:${uvCol}">${uv}</div><div class="l">UV Index</div></div>
+      </div>`;
+      } catch (e) {
+        document.getElementById('wx-out').innerHTML = '<div class="err">Weather unavailable</div>';
+      }
+    }
+
+    // FOOTBALL FETCH via Worker
+    async function fb(path) {
+      const res = await fetch(PROXY + '/football' + path);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }
+
+    function notReady(id) {
+      document.getElementById(id).innerHTML = `<div class="notice">Add <strong>FOOTBALL_API_KEY</strong> to your Cloudflare Worker environment variables to enable this widget. Get a free key at <a href="https://www.football-data.org" target="_blank">football-data.org</a>.</div>`;
+    }
+
+    // SCORES
+    async function loadScores() {
+
+      const el =
+        document.getElementById(
+          'scores-out'
+        );
+
+      try {
+
+        let html = '';
+
+        const leagues = [
+          'PL',
+          'CL',
+          'PD'
+        ];
+
+        for (const lid of leagues) {
+
+          let matches = [];
+
+          try {
+
+            const data =
+              await fb(
+                `/competitions/${lid}/matches`
+              );
+
+            matches =
+              (data.matches || [])
+                .filter(
+                  m =>
+                    m.status === 'LIVE' ||
+                    m.status === 'IN_PLAY' ||
+                    m.status === 'PAUSED'
+                )
+                .slice(0, 2);
+
+          } catch (_) { }
+
+          if (!matches.length)
+            continue;
+
+          html += `
+                <div class="sec-title">
+                    ${LEAGUE_NAME[lid]}
+                </div>
+            `;
+
+          html += matches.map(m => {
+
+            const live =
+              [
+                'IN_PLAY',
+                'PAUSED',
+                'LIVE'
+              ].includes(m.status);
+
+            const hg =
+              m.score.fullTime.home ?? '—';
+
+            const ag =
+              m.score.fullTime.away ?? '—';
+
+            return `
+
+                <div class="match">
+
+                    <div class="lpill ${LPILL_CLASS[lid]}">
+                        ${lid}
+                    </div>
+
+                    <div
+                        class="tn ${m.homeTeam.id === BARCA_ID
+                ? 'bc'
+                : ''
+              }"
+                    >
+                        ${m.homeTeam.shortName || m.homeTeam.name}
+                    </div>
+
+                    <div class="sbox">
+                        ${hg} — ${ag}
+                    </div>
+
+                    <div
+                        class="tn r ${m.awayTeam.id === BARCA_ID
+                ? 'bc'
+                : ''
+              }"
+                    >
+                        ${m.awayTeam.shortName || m.awayTeam.name}
+                    </div>
+
+                    <div class="ms">
+                        ${live ? 'LIVE' : m.status}
+                    </div>
+
+                </div>
+                `;
+
+          }).join('');
+
+        }
+
+        el.innerHTML =
+          html ||
+          '<div class="dim">No live matches right now</div>';
+
+      } catch (e) {
+
+        if (
+          e.message.includes('401') ||
+          e.message.includes('403')
+        ) {
+
+          notReady('scores-out');
+
+        } else {
+
+          el.innerHTML =
+            '<div class="err">Scores unavailable</div>';
+
+        }
+
+        console.error(
+          'loadScores:',
+          e
+        );
+      }
+    }
+    // STANDINGS
+    async function loadStandings(lid) {
+      const el = document.getElementById('standings-out');
+      el.innerHTML = '<div class="dim">Loading…</div>';
+      try {
+        const d = await fb(`/competitions/${lid}/standings`);
+        const table = (d.standings[0].table || []).slice(0, 8);
+        el.innerHTML = `
+      <div class="st-row st-hdr">
+        <div>#</div><div>Club</div>
+        <div style="text-align:right">MP</div>
+        <div style="text-align:right">GD</div>
+        <div style="text-align:right">W</div>
+        <div style="text-align:right;color:var(--blue)">Pts</div>
+      </div>
+      ${table.map(r => `
+        <div class="st-row ${r.team.id === BARCA_ID ? 'brow' : ''}">
+          <div class="st-pos">${r.position}</div>
+          <div class="st-team">${r.team.shortName || r.team.name}</div>
+          <div class="st-num">${r.playedGames}</div>
+          <div class="st-num">${r.goalDifference > 0 ? '+' : ''}${r.goalDifference}</div>
+          <div class="st-num">${r.won}</div>
+          <div class="st-pts">${r.points}</div>
+        </div>`).join('')}`;
+      } catch (e) {
+        if (e.message.includes('401') || e.message.includes('403')) notReady('standings-out');
+        else el.innerHTML = '<div class="err">Standings unavailable</div>';
+        console.error('loadStandings:', e);
+      }
+    }
+
+    document.querySelectorAll('.lp').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.lp').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadStandings(btn.dataset.lid);
+      });
+    });
+
+    // FLIGHTS
+    async function loadFlights() {
+      try {
+        const res = await fetch(`${PROXY}/flights?lat=${LAT}&lon=${LON}&dist=100`);
+        const d = await res.json();
+        const ac = (d.aircraft || []).filter(a => a.callsign);
+        if (!ac.length) {
+          document.getElementById('flights-out').innerHTML = '<div class="dim">No aircraft overhead right now</div>';
+          return;
+        }
+        const hdr = `<div class="fl-row" style="font-size:10px;color:var(--t3);padding:4px 8px">
+      <div>Callsign</div><div>Country</div><div>Alt</div><div>Speed</div><div>Status</div>
+    </div>`;
+        const rows = ac.slice(0, 7).map(a => {
+          const alt =
+            a.altitude != null
+              ? `FL${Math.round(a.altitude / 100)}`
+              : '—';
+
+          const spd =
+            a.speed != null
+              ? `${a.speed}kt`
+              : '—';
+          return `<div class="fl-row">
+        <div class="fl-no">${a.callsign}</div>
+        <div class="fl-country">${a.country}</div>
+        <div class="fl-alt">${alt}</div>
+        <div class="fl-spd">${spd}</div>
+        <div class="fl-badge ${a.on_ground ? 'gnd' : 'air'}">${a.on_ground ? 'GND' : 'AIR'}</div>
+      </div>`;
+        }).join('');
+        const footer = `<div style="font-size:11px;color:var(--t3);margin-top:8px;padding:0 8px">${ac.length} aircraft in ~90km radius · ${d.source === 'adsbx' ? 'ADS-B Exchange' : 'OpenSky'}</div>`;
+        document.getElementById('flights-out').innerHTML = hdr + rows + footer;
+      } catch (e) {
+        document.getElementById('flights-out').innerHTML = '<div class="err">Flight feed unavailable</div>';
+        console.error('loadFlights:', e);
+      }
+    }
+
+    function tickWorldCupCountdown() {
+
+      if (!window._wcMatchDate)
+        return;
+
+      const diff =
+        window._wcMatchDate - new Date();
+
+      if (diff <= 0) {
+
+        const el =
+          document.getElementById(
+            "wc-countdown"
+          );
+
+        if (el)
+          el.textContent =
+            "LIVE";
+
+        return;
+      }
+
+      const days =
+        Math.floor(
+          diff / 86400000
+        );
+
+      const hours =
+        Math.floor(
+          (
+            diff % 86400000
+          ) / 3600000
+        );
+
+      const mins =
+        Math.floor(
+          (
+            diff % 3600000
+          ) / 60000
+        );
+
+      const el =
+        document.getElementById(
+          "wc-countdown"
+        );
+
+      if (el)
+        el.textContent =
+          `${days}d ${hours}h ${mins}m`;
+    }
+
+    setInterval(
+      tickWorldCupCountdown,
+      60000
+    );
+
+    tickWorldCupCountdown();
+
+    async function loadWorldCup() {
+
+      const container =
+        document.getElementById(
+          "wc-next-match"
+        );
+
+      try {
+
+        const data =
+          await fb(
+            "/competitions/WC/matches?season=2026"
+          );
+
+        const matches =
+          data.matches || [];
+
+        console.log(
+          "WC MATCHES:",
+          matches.length,
+          matches
+        );
+
+        if (!matches.length) {
+
+          container.innerHTML = `
+                <div class="dim">
+                    No scheduled World Cup matches
+                </div>
+            `;
+
+          return;
+        }
+
+        const nextMatch =
+          matches
+            .filter(
+              m => new Date(m.utcDate) > new Date()
+            )
+            .sort(
+              (a, b) =>
+                new Date(a.utcDate) -
+                new Date(b.utcDate)
+            )[0];
+
+        const kickoff =
+          new Date(
+            nextMatch.utcDate
+          );
+
+        container.innerHTML = `
+
+            <div class="fix-teams">
+
+                <div class="fix-team">
+
+                    <div class="team-flag">
+                        <img
+                            src="https://flagsapi.com/${FLAG_CODES[nextMatch.homeTeam.tla]}/flat/64.png"
+                            alt="${nextMatch.homeTeam.name}"
+                        >
+                    </div>
+
+                    <div class="name">
+                        ${nextMatch.homeTeam.name}
+                    </div>
+
+                </div>
+
+                <div class="fix-vs">
+                    vs
+                </div>
+
+                <div class="fix-team">
+
+    <div class="team-flag">
+        <img
+            src="https://flagsapi.com/${FLAG_CODES[nextMatch.awayTeam.tla]}/flat/64.png"
+            alt="${nextMatch.awayTeam.name}"
+        >
+    </div>
+
+    <div class="name">
+        ${nextMatch.awayTeam.name}
+    </div>
+
+</div>
+
+            </div>
+
+<div class="fix-meta">
+
+    <div class="fix-time">
+        ${kickoff.toLocaleTimeString(
+          "en-IN",
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: "Asia/Kolkata"
+          }
+        )}
+    </div>
+
+    <div class="fix-date">
+        ${kickoff.toLocaleDateString(
+          "en-IN",
+          {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            timeZone: "Asia/Kolkata"
+          }
+        )}
+    </div>
+
+    <div class="fix-comp">
+        ${(nextMatch.stage || "Group Stage")
+            .replaceAll("_", " ")
+            .replace(/\b\w/g, c => c.toUpperCase())}
+    </div>
+
+    <div
+        class="cd"
+        id="wc-countdown"
+    >
+        --
+    </div>
+
+</div>
+
+        `;
+
+        window._wcMatchDate =
+          kickoff;
+
+        tickWorldCupCountdown();
+
+      } catch (err) {
+
+        console.error(
+          "World Cup:",
+          err
+        );
+
+        container.innerHTML = `
+            <div class="err">
+                World Cup data unavailable
+            </div>
+        `;
+      }
+    }
+    loadWorldCup();
+
+    setInterval(
+      loadWorldCup,
+      60 * 60 * 1000
+    );
+
+    //INIT
+    loadWeather();
+
+    setTimeout(loadFlights, 1000);
+
+    setTimeout(() => {
+      loadStandings('PD');
+    }, 3000);
+
+    setTimeout(loadScores, 6000);
+
+  </script>
+</body>
+
+</html>
